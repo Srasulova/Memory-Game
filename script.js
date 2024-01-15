@@ -1,4 +1,7 @@
 const gameContainer = document.getElementById("game");
+const restartBtn = document.querySelector(".restart");
+const player1 = document.querySelector(".player1score");
+const player2 = document.querySelector(".player2score");
 
 const COLORS = [
   "red",
@@ -64,10 +67,22 @@ let player1Score = 0;
 let player2Score = 0;
 let firstCardClicked = null;
 let secondCardClicked = null;
+let timeoutId = null; // Variable to store the timeout ID
 
 function handleCardClick(event) {
   console.log("you just clicked", event.target);
   console.log(event.target.className);
+
+  // If two cards are already clicked and waiting, ignore new clicks
+  if (firstCardClicked && secondCardClicked) {
+    return;
+  }
+
+  // Clear any existing timeout
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+    timeoutId = null;
+  }
 
   const initialColor = event.target.style.backgroundColor;
   const flippedColor = event.target.className;
@@ -78,7 +93,7 @@ function handleCardClick(event) {
     firstCardClicked.style.backgroundColor = flippedColor;
 
     // Set timeout to flip back to initial color after 2 seconds
-    setTimeout(() => {
+    timeoutId = setTimeout(() => {
       if (firstCardClicked) {
         firstCardClicked.style.backgroundColor = initialColor;
         firstCardClicked = null;
@@ -94,10 +109,10 @@ function handleCardClick(event) {
       // Colors match, increment player score
       if (currentPlayer === 1) {
         player1Score++;
-        document.querySelector(".player1score").textContent = player1Score;
+        player1.textContent = player1Score;
       } else {
         player2Score++;
-        document.querySelector(".player2score").textContent = player2Score;
+        player2.textContent = player2Score;
       }
 
       // Reset cards and switch player
@@ -106,7 +121,7 @@ function handleCardClick(event) {
       currentPlayer = currentPlayer === 1 ? 2 : 1;
     } else {
       // Colors don't match, use setTimeout to revert the color after 2 seconds
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         // Check if the cards are different before reverting colors
         if (firstCardClicked && secondCardClicked) {
           firstCardClicked.style.backgroundColor = initialColor;
@@ -121,6 +136,27 @@ function handleCardClick(event) {
     }
   }
 }
+
+restartBtn.addEventListener("click", function () {
+  // Remove all existing cards
+  gameContainer.innerHTML = "";
+
+  // Shuffle colors array to create a new order
+  shuffledColors = shuffle(COLORS);
+
+  // Create and append new divs for the shuffled colors
+  createDivsForColors(shuffledColors);
+
+  // Reset player scores and other game-related variables
+  currentPlayer = 1;
+  player1Score = 0;
+  player2Score = 0;
+  firstCardClicked = null;
+  secondCardClicked = null;
+  timeoutId = null;
+  player1.textContent = "0";
+  player2.textContent = "0";
+});
 
 // when the DOM loads
 createDivsForColors(shuffledColors);
